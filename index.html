@@ -1913,7 +1913,8 @@ function listenDiceLog() {
         if (currentRole === 'mj') appendDiceMsg(data, 'mj');
         return;
       }
-      if (data.slot === currentPlayerSlot) return; // own roll already shown
+      if (data.slot === currentPlayerSlot && currentRole === 'player') return;
+if (data.slot === 'mj' && currentRole === 'mj') return;
       if (currentRole === 'player') appendDiceMsg(data, 'player');
       else if (currentRole === 'mj') appendDiceMsg(data, 'mj');
       else if (currentRole === 'viewer') {
