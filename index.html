@@ -574,6 +574,7 @@ body{font-family:var(--font-body);background:#0d0a05;color:var(--ink);min-height
           <input type="file" id="import-sound-file" accept="audio/*"
             style="width:100%;padding:.4rem;font-family:var(--font-body);background:var(--parchment2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--ink)">
           <div id="import-preview-name" style="font-family:var(--font-body);font-size:.8rem;color:var(--ink3);margin-top:4px;font-style:italic"></div>
+          <div id="import-size-warn" style="font-family:var(--font-title);font-size:.7rem;margin-top:4px;letter-spacing:.05em"></div>
         </div>
         <div class="field" style="margin-bottom:.75rem">
           <label>Nom du son</label>
@@ -2174,7 +2175,7 @@ function renderCombatReadonly() {
           <span class="comb-name">${cb.name}</span>
           <span class="type-badge ${cb.type === 'player' ? 'type-player' : 'type-monster'}">${cb.type === 'player' ? 'Joueur' : 'Monstre'}</span>
           <div class="hp-tracker">
-            <span style="font-family:var(--font-title);font-size:.9rem;color:${hpClr}">${cb.type === 'player' ? cb.hp+'/'+cb.hpMax : '???'}</span>
+            <span style="font-family:var(--font-title);font-size:.9rem;color:${hpClr}">${cb.hp}/${cb.hpMax}</span>
             <div class="hp-bar-wrap"><div class="hp-bar" style="width:${pct}%;background:${hpClr}"></div></div>
           </div>
           ${condTags ? `<div class="conditions-wrap">${condTags}</div>` : ''}
@@ -2262,59 +2263,31 @@ function listenCombat() {
 // SOUNDBOARD — Sources libres de droits (Freesound / OpenGameArt)
 // ═══════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════
-// SOUNDBOARD — Import MP3 depuis l'ordinateur
-// Stockage local via IndexedDB
+// SOUNDBOARD — Import MP3, sync Firebase (base64)
 // ═══════════════════════════════════════════════════════════
 
-// IndexedDB setup
-let soundDB = null;
-const DB_NAME = 'dng_sounds', DB_VERSION = 1, STORE_NAME = 'sounds';
-
-function initSoundDB(cb) {
-  const req = indexedDB.open(DB_NAME, DB_VERSION);
-  req.onupgradeneeded = e => {
-    const db = e.target.result;
-    if (!db.objectStoreNames.contains(STORE_NAME)) {
-      db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-    }
-  };
-  req.onsuccess = e => { soundDB = e.target.result; if(cb) cb(); };
-  req.onerror = () => console.error('IndexedDB error');
-}
-
-function saveSound(soundObj, cb) {
-  if (!soundDB) return;
-  const tx = soundDB.transaction(STORE_NAME, 'readwrite');
-  tx.objectStore(STORE_NAME).put(soundObj);
-  tx.oncomplete = cb;
-}
-
-function deleteSound(id, cb) {
-  if (!soundDB) return;
-  const tx = soundDB.transaction(STORE_NAME, 'readwrite');
-  tx.objectStore(STORE_NAME).delete(id);
-  tx.oncomplete = cb;
-}
-
-function getAllSounds(cb) {
-  if (!soundDB) { cb([]); return; }
-  const tx = soundDB.transaction(STORE_NAME, 'readonly');
-  const req = tx.objectStore(STORE_NAME).getAll();
-  req.onsuccess = e => cb(e.target.result || []);
-}
-
-// Audio players state
 const audioPlayers = { music: null, amb1: null, amb2: null };
 const activeTrackIds = { music: null, amb1: null, amb2: null };
 let masterVolume = 0.7;
 let userSounds = []; // [{id, name, category, dataUrl}]
+const MAX_SOUND_SIZE = 8 * 1024 * 1024; // 8Mo max
 
+// ── Build soundboard UI ──
 function buildSoundboard() {
-  initSoundDB(() => {
-    getAllSounds(sounds => {
-      userSounds = sounds;
-      renderSoundboard();
-    });
+  // Load sounds from Firebase
+  fbGet('sounds', data => {
+    if (data) {
+      userSounds = Object.values(data);
+    } else {
+      userSounds = [];
+    }
+    renderSoundboard();
+  });
+  // Listen for sound library updates
+  fbListen('sounds', data => {
+    if (!data) { userSounds = []; renderSoundboard(); return; }
+    userSounds = Object.values(data);
+    renderSoundboard();
   });
 }
 
@@ -2326,52 +2299,61 @@ function renderSoundboard() {
   const musics = userSounds.filter(s => s.category === 'music');
   const ambs = userSounds.filter(s => s.category === 'ambiance');
 
-  musicGrid.innerHTML = musics.length ? musics.map(t => soundBtnHTML(t)).join('') :
-    '<div style="font-family:var(--font-body);font-style:italic;color:var(--ink3);font-size:.85rem;padding:.5rem">Aucune musique importée.</div>';
+  musicGrid.innerHTML = musics.length
+    ? musics.map(t => soundBtnHTML(t)).join('')
+    : '<div style="font-family:var(--font-body);font-style:italic;color:var(--ink3);font-size:.85rem;padding:.5rem 0">Aucune musique — importez un MP3 ci-dessus.</div>';
 
-  ambGrid.innerHTML = ambs.length ? ambs.map(t => soundBtnHTML(t)).join('') :
-    '<div style="font-family:var(--font-body);font-style:italic;color:var(--ink3);font-size:.85rem;padding:.5rem">Aucune ambiance importée.</div>';
+  ambGrid.innerHTML = ambs.length
+    ? ambs.map(t => soundBtnHTML(t)).join('')
+    : '<div style="font-family:var(--font-body);font-style:italic;color:var(--ink3);font-size:.85rem;padding:.5rem 0">Aucune ambiance — importez un MP3 ci-dessus.</div>';
 
   updateSoundUI();
 }
 
 function soundBtnHTML(t) {
+  const isMJ = currentRole === 'mj';
   return `<div style="position:relative">
     <button class="sound-btn" id="sbtn-${t.id}" onclick="playSound('${t.id}')">
       <span class="sound-icon">${t.category === 'music' ? '🎵' : '🌿'}</span>
       <span class="sound-label">${t.name}</span>
     </button>
-    <button onclick="removeSoundTrack('${t.id}')" title="Supprimer"
-      style="position:absolute;top:2px;right:2px;background:none;border:none;cursor:pointer;font-size:.7rem;color:var(--ink3);opacity:.5;padding:2px">✕</button>
+    ${isMJ ? `<button onclick="removeSoundTrack('${t.id}')" title="Supprimer ce son"
+      style="position:absolute;top:2px;right:2px;background:none;border:none;cursor:pointer;font-size:.75rem;color:var(--ink3);opacity:.6;padding:2px 4px">✕</button>` : ''}
   </div>`;
 }
 
-// Import modal
+// ── Import modal ──
 function openImportModal() {
   document.getElementById('sound-import-modal').classList.add('open');
   document.getElementById('import-sound-name').value = '';
   document.getElementById('import-sound-file').value = '';
   document.getElementById('import-cat-music').checked = true;
   document.getElementById('import-preview-name').textContent = '';
+  document.getElementById('import-size-warn').textContent = '';
 }
 function closeImportModal() {
   document.getElementById('sound-import-modal').classList.remove('open');
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const fileInput = document.getElementById('import-sound-file');
-  if (fileInput) {
-    fileInput.addEventListener('change', function() {
-      const file = this.files[0];
-      if (!file) return;
-      // Auto-fill name from filename
-      const nameInput = document.getElementById('import-sound-name');
-      if (!nameInput.value) {
-        nameInput.value = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
-      }
-      document.getElementById('import-preview-name').textContent = file.name;
-    });
+// Auto-fill name from filename
+document.addEventListener('change', function(e) {
+  if (e.target.id !== 'import-sound-file') return;
+  const file = e.target.files[0];
+  if (!file) return;
+  const nameInput = document.getElementById('import-sound-name');
+  if (!nameInput.value) {
+    nameInput.value = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
   }
+  const sizeEl = document.getElementById('import-size-warn');
+  const sizeMb = (file.size / 1024 / 1024).toFixed(1);
+  if (file.size > MAX_SOUND_SIZE) {
+    sizeEl.textContent = `⚠️ Fichier trop lourd (${sizeMb}Mo) — maximum 8Mo`;
+    sizeEl.style.color = 'var(--red2)';
+  } else {
+    sizeEl.textContent = `✅ ${sizeMb}Mo — OK`;
+    sizeEl.style.color = 'var(--green2)';
+  }
+  document.getElementById('import-preview-name').textContent = file.name;
 });
 
 function confirmImport() {
@@ -2382,44 +2364,48 @@ function confirmImport() {
 
   if (!file) { showToast('Choisissez un fichier audio'); return; }
   if (!name) { showToast('Donnez un nom au son'); return; }
+  if (file.size > MAX_SOUND_SIZE) { showToast('Fichier trop lourd — max 8Mo'); return; }
+
+  showToast('Importation en cours…');
 
   const reader = new FileReader();
   reader.onload = e => {
     const soundObj = {
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2,5),
-      name, category: cat,
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+      name,
+      category: cat,
       dataUrl: e.target.result
     };
-    saveSound(soundObj, () => {
-      userSounds.push(soundObj);
-      renderSoundboard();
-      closeImportModal();
-      showToast('Son importé : ' + name);
-    });
+    // Save to Firebase so all players get it
+    fbSet('sounds/' + soundObj.id, soundObj);
+    closeImportModal();
+    showToast('✅ Son importé et synchronisé : ' + name);
   };
+  reader.onerror = () => showToast('Erreur de lecture du fichier');
   reader.readAsDataURL(file);
 }
 
 function removeSoundTrack(id) {
-  // Stop if playing
-  ['music','amb1','amb2'].forEach(slot => {
+  ['music', 'amb1', 'amb2'].forEach(slot => {
     if (activeTrackIds[slot] === id) stopSlot(slot);
   });
-  deleteSound(id, () => {
-    userSounds = userSounds.filter(s => s.id !== id);
-    renderSoundboard();
-    saveSoundState();
-    showToast('Son supprimé');
-  });
+  // Remove from Firebase
+  if (firebaseReady && db) {
+    try { db.ref('sounds/' + id).remove(); } catch(e) {}
+  }
+  saveSoundState();
+  showToast('Son supprimé');
 }
 
-// Playback
+// ── Playback ──
 function playSound(id) {
   const track = userSounds.find(t => t.id === id);
-  if (!track) return;
+  if (!track) { showToast('Son introuvable'); return; }
 
   if (track.category === 'music') {
-    if (activeTrackIds.music === id) { stopSlot('music'); saveSoundState(); updateSoundUI(); return; }
+    if (activeTrackIds.music === id) {
+      stopSlot('music'); saveSoundState(); updateSoundUI(); return;
+    }
     stopSlot('music');
     startSlot('music', track);
   } else {
@@ -2448,7 +2434,7 @@ function stopSlot(slot) {
 }
 
 function stopAllSounds() {
-  ['music','amb1','amb2'].forEach(s => stopSlot(s));
+  ['music', 'amb1', 'amb2'].forEach(s => stopSlot(s));
   saveSoundState(); updateSoundUI();
   showToast('Sons arrêtés');
 }
@@ -2464,7 +2450,7 @@ function updateSoundUI() {
   userSounds.forEach(t => {
     const btn = document.getElementById('sbtn-' + t.id);
     if (!btn) return;
-    btn.classList.remove('playing-music','playing-amb1','playing-amb2');
+    btn.classList.remove('playing-music', 'playing-amb1', 'playing-amb2');
     if (activeTrackIds.music === t.id) btn.classList.add('playing-music');
     if (activeTrackIds.amb1 === t.id) btn.classList.add('playing-amb1');
     if (activeTrackIds.amb2 === t.id) btn.classList.add('playing-amb2');
@@ -2475,16 +2461,16 @@ function updateSoundUI() {
   if (!card || !display) return;
 
   const active = [];
-  ['music','amb1','amb2'].forEach(slot => {
+  ['music', 'amb1', 'amb2'].forEach(slot => {
     if (activeTrackIds[slot]) {
       const t = userSounds.find(x => x.id === activeTrackIds[slot]);
-      if (t) active.push({slot, track: t});
+      if (t) active.push({ slot, track: t });
     }
   });
 
   if (active.length) {
     card.style.display = '';
-    display.innerHTML = active.map(({slot, track}) =>
+    display.innerHTML = active.map(({ slot, track }) =>
       `<div class="track-active ${slot === 'music' ? 'music' : slot === 'amb1' ? 'amb1' : 'amb2'}">
         ${track.category === 'music' ? '🎵' : '🌿'} ${track.name}
         <button onclick="stopSlot('${slot}');saveSoundState();updateSoundUI()"
@@ -2503,7 +2489,7 @@ function toggleSoundSection(titleEl, gridId) {
   titleEl.classList.toggle('collapsed');
 }
 
-// Firebase sound sync — on sync uniquement les IDs actifs et le volume
+// ── Firebase sound sync ──
 function saveSoundState() {
   fbSet('sound_state', {
     music: activeTrackIds.music,
@@ -2514,27 +2500,32 @@ function saveSoundState() {
 }
 
 function listenSoundState() {
-  // Players load their own IndexedDB sounds then apply MJ state
-  initSoundDB(() => {
-    getAllSounds(sounds => {
-      userSounds = sounds;
-      fbListen('sound_state', data => {
-        if (!data) return;
-        if (data.volume !== undefined) {
-          masterVolume = data.volume / 100;
-          const slider = document.getElementById('master-volume');
-          const valEl = document.getElementById('volume-val');
-          if (slider) slider.value = data.volume;
-          if (valEl) valEl.textContent = data.volume + '%';
-          Object.values(audioPlayers).forEach(a => { if (a) a.volume = masterVolume; });
-        }
-        if (currentRole === 'player' || currentRole === 'viewer') {
-          applyRemoteSound('music', data.music);
-          applyRemoteSound('amb1', data.amb1);
-          applyRemoteSound('amb2', data.amb2);
-        }
-      });
-    });
+  // Listen to sound library first
+  fbListen('sounds', data => {
+    if (!data) { userSounds = []; }
+    else { userSounds = Object.values(data); }
+    if (currentRole === 'player' || currentRole === 'viewer') {
+      renderSoundboard();
+    }
+  });
+  // Then listen to playback state
+  fbListen('sound_state', data => {
+    if (!data) return;
+    // Sync volume for everyone
+    if (data.volume !== undefined) {
+      masterVolume = data.volume / 100;
+      const slider = document.getElementById('master-volume');
+      const valEl = document.getElementById('volume-val');
+      if (slider) slider.value = data.volume;
+      if (valEl) valEl.textContent = data.volume + '%';
+      Object.values(audioPlayers).forEach(a => { if (a) a.volume = masterVolume; });
+    }
+    // Apply playback state for players/viewers
+    if (currentRole === 'player' || currentRole === 'viewer') {
+      applyRemoteSound('music', data.music);
+      applyRemoteSound('amb1', data.amb1);
+      applyRemoteSound('amb2', data.amb2);
+    }
   });
 }
 
@@ -2543,6 +2534,11 @@ function applyRemoteSound(slot, newId) {
   if (!newId) { stopSlot(slot); return; }
   const track = userSounds.find(t => t.id === newId);
   if (track) startSlot(slot, track);
+  // If track not found yet, it might still be loading from Firebase - retry once
+  else setTimeout(() => {
+    const t2 = userSounds.find(t => t.id === newId);
+    if (t2) startSlot(slot, t2);
+  }, 2000);
 }
 
 // ═══════════════════════════════════════════════════════════
