@@ -1681,7 +1681,8 @@ function renderEquip(){
 // SAUVEGARDE / CHARGEMENT
 // ═══════════════════════════════════════════════════════════
 let saveTimeout=null;
-function saveChar(){clearTimeout(saveTimeout);saveTimeout=setTimeout(_saveChar,800);}
+function saveChar(){clearTimeout(saveTimeout);saveTimeout=setTimeout(_saveChar,300);}
+window.addEventListener('beforeunload',()=>{clearTimeout(saveTimeout);_saveChar();});
 function _saveChar(){
   if(!currentPlayerSlot)return;
   const g=id=>document.getElementById(id)?.value||'';
