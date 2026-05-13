@@ -1685,6 +1685,7 @@ function saveChar(){clearTimeout(saveTimeout);saveTimeout=setTimeout(_saveChar,3
 window.addEventListener('beforeunload',()=>{clearTimeout(saveTimeout);_saveChar();});
 function _saveChar(){
   if(!currentPlayerSlot)return;
+  if(!firebaseReady){setTimeout(_saveChar,500);return;}
   const g=id=>document.getElementById(id)?.value||'';
   const data={
     name:g('char-name'),race:g('char-race'),class:g('char-class'),level:g('char-level'),
