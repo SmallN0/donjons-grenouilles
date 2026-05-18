@@ -2313,14 +2313,14 @@ function renderSoundboard() {
 }
 
 function soundBtnHTML(t) {
-  const isMJ = currentRole === 'mj';
-  return `<div style="position:relative">
-    <button class="sound-btn" id="sbtn-${t.id}" onclick="playSound('${t.id}')">
+const isMJ = currentRole === 'mj';
+  return `<div style="position:relative;width:120px;flex-shrink:0">
+    <button class="sound-btn" id="sbtn-${t.id}" onclick="playSound('${t.id}')" style="width:120px;height:80px">
       <span class="sound-icon">${t.category === 'music' ? '🎵' : '🌿'}</span>
       <span class="sound-label">${t.name}</span>
     </button>
     ${isMJ ? `<button onclick="removeSoundTrack('${t.id}')" title="Supprimer ce son"
-      style="position:absolute;top:2px;right:2px;background:none;border:none;cursor:pointer;font-size:.75rem;color:var(--ink3);opacity:.6;padding:2px 4px">✕</button>` : ''}
+      style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--red);border:none;cursor:pointer;font-size:.6rem;color:#ffd0d0;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>` : ''}
   </div>`;
 }
 
