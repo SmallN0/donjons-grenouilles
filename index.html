@@ -1989,6 +1989,7 @@ function onAddTypeChange() {
   selectedMonster = null;
 }
 
+const playerDataCache = {};
 function populatePlayerSelect() {
   const sel = document.getElementById('add-player-select');
   sel.innerHTML = '<option value="">— Sélectionner —</option>';
@@ -1996,6 +1997,7 @@ function populatePlayerSelect() {
     (i => {
       fbGet('chars/p' + i, data => {
         if (data && data.name) {
+          playerDataCache['p' + i] = data;
           const o = document.createElement('option');
           o.value = 'p' + i; o.textContent = data.name;
           sel.appendChild(o);
@@ -2003,8 +2005,14 @@ function populatePlayerSelect() {
       });
     })(i);
   }
+  sel.addEventListener('change', function() {
+    const data = playerDataCache[this.value];
+    if (data) {
+      document.getElementById('add-hp').value = data.hp?.current || data.hp?.max || '';
+      document.getElementById('add-ca').value = data.combat?.ac || '';
+    }
+  });
 }
-
 function searchMonsters(q) {
   const sug = document.getElementById('monster-suggestions');
   if (!q || q.length < 1) { sug.classList.remove('open'); return; }
@@ -2039,9 +2047,14 @@ function addCombatant() {
     name = sel.options[sel.selectedIndex]?.text || 'Joueur';
     if (!sel.value) { showToast('Sélectionnez un joueur'); return; }
     ctype = 'player';
-  } else if (type === 'monster') {
-    if (!selectedMonster) { showToast('Sélectionnez un monstre'); return; }
-    name = selectedMonster.name; ctype = 'monster';
+ } else if (type === 'monster') {
+    if (!selectedMonster) {
+      const search = document.getElementById('monster-search').value.trim();
+      if (!search) { showToast('Sélectionnez un monstre'); return; }
+      name = search; ctype = 'monster';
+    } else {
+      name = selectedMonster.name; ctype = 'monster';
+    }
   } else {
     name = document.getElementById('custom-name').value.trim() || 'Créature';
     ctype = 'monster';
