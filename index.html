@@ -2255,6 +2255,7 @@ function loadMJCombat() {
   fbGet('combat', data => {
     if (data) {
       combatState = data;
+      if (!Array.isArray(combatState.combatants)) combatState.combatants = [];
       const el = document.getElementById('round-num'); if (el) el.textContent = combatState.round || 1;
       renderCombatants();
     }
