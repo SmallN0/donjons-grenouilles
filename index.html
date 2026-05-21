@@ -2262,7 +2262,7 @@ function saveCombat() { fbSet('combat', combatState); }
 function loadMJCombat() {
   fbGet('combat', data => {
     if (data) {
-      combatState = data;
+      combatState = safeCombatState(data);
       if (!Array.isArray(combatState.combatants)) combatState.combatants = [];
       const el = document.getElementById('round-num'); if (el) el.textContent = combatState.round || 1;
       renderCombatants();
@@ -2272,7 +2272,7 @@ function loadMJCombat() {
 function listenCombat() {
   fbListen('combat', data => {
     if (!data) return;
-    combatState = data;
+    combatState = safeCombatState(data);
     if (currentRole === 'mj') {
       const el = document.getElementById('round-num'); if (el) el.textContent = combatState.round || 1;
       renderCombatants();
