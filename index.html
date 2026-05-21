@@ -1290,6 +1290,14 @@ const CONDITIONS = [
 let currentRole = null, currentPlayerSlot = null;
 let charData = {skillProfs:{}, saveProfs:{}};
 let combatState = {round:1, currentTurn:0, combatants:[]};
+function safeCombatState(data) {
+  if (!data) return {round:1, currentTurn:0, combatants:[]};
+  return {
+    round: data.round || 1,
+    currentTurn: data.currentTurn || 0,
+    combatants: Array.isArray(data.combatants) ? data.combatants : []
+  };
+}
 let knownSpells = [], spellSlotState = {};
 let deathSaves = {s:[false,false,false], f:[false,false,false]};
 let attacksList = [], equipList = [];
