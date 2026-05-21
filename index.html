@@ -1301,13 +1301,13 @@ let diceState = {die:'d6', mod:'none', playerDie:'d6', playerMod:'none'};
 // FIREBASE
 // ═══════════════════════════════════════════════════════════
 const FIREBASE_CONFIG = {
-  apiKey:"AIzaSyDT27fUnOF2uxpETgWO6ikEaK5Mn24Hv74",
-  authDomain:"donjons-grenouilles.firebaseapp.com",
-  databaseURL:"https://donjons-grenouilles-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId:"donjons-grenouilles",
-  storageBucket:"donjons-grenouilles.firebasestorage.app",
-  messagingSenderId:"587688024665",
-  appId:"1:587688024665:web:6dd503e161345e7d14af48"
+  apiKey:"VOTRE_API_KEY",
+  authDomain:"VOTRE_PROJECT.firebaseapp.com",
+  databaseURL:"https://VOTRE_PROJECT-default-rtdb.firebaseio.com",
+  projectId:"VOTRE_PROJECT_ID",
+  storageBucket:"VOTRE_PROJECT.appspot.com",
+  messagingSenderId:"VOTRE_SENDER_ID",
+  appId:"VOTRE_APP_ID"
 };
 function initFirebase(){
   try{
@@ -1681,11 +1681,9 @@ function renderEquip(){
 // SAUVEGARDE / CHARGEMENT
 // ═══════════════════════════════════════════════════════════
 let saveTimeout=null;
-function saveChar(){clearTimeout(saveTimeout);saveTimeout=setTimeout(_saveChar,300);}
-window.addEventListener('beforeunload',()=>{clearTimeout(saveTimeout);_saveChar();});
+function saveChar(){clearTimeout(saveTimeout);saveTimeout=setTimeout(_saveChar,800);}
 function _saveChar(){
   if(!currentPlayerSlot)return;
-  if(!firebaseReady){setTimeout(_saveChar,500);return;}
   const g=id=>document.getElementById(id)?.value||'';
   const data={
     name:g('char-name'),race:g('char-race'),class:g('char-class'),level:g('char-level'),
@@ -2013,6 +2011,7 @@ function populatePlayerSelect() {
     }
   });
 }
+
 function searchMonsters(q) {
   const sug = document.getElementById('monster-suggestions');
   if (!q || q.length < 1) { sug.classList.remove('open'); return; }
@@ -2047,10 +2046,10 @@ function addCombatant() {
     name = sel.options[sel.selectedIndex]?.text || 'Joueur';
     if (!sel.value) { showToast('Sélectionnez un joueur'); return; }
     ctype = 'player';
- } else if (type === 'monster') {
+  } else if (type === 'monster') {
     if (!selectedMonster) {
       const search = document.getElementById('monster-search').value.trim();
-      if (!search) { showToast('Sélectionnez un monstre'); return; }
+      if (!search) { showToast('Sélectionnez un monstre dans la liste'); return; }
       name = search; ctype = 'monster';
     } else {
       name = selectedMonster.name; ctype = 'monster';
@@ -2060,6 +2059,7 @@ function addCombatant() {
     ctype = 'monster';
   }
 
+  if (!name) { showToast('Renseignez un nom'); return; }
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
   combatState.combatants.push({ id, name, type: ctype, init, hp, hpMax: hp || 1, conditions: [], ac: ca });
   combatState.combatants.sort((a, b) => b.init - a.init);
@@ -2326,14 +2326,14 @@ function renderSoundboard() {
 }
 
 function soundBtnHTML(t) {
-const isMJ = currentRole === 'mj';
-  return `<div style="position:relative;width:120px;flex-shrink:0">
-    <button class="sound-btn" id="sbtn-${t.id}" onclick="playSound('${t.id}')" style="width:120px;height:80px">
+  const isMJ = currentRole === 'mj';
+  return `<div style="position:relative">
+    <button class="sound-btn" id="sbtn-${t.id}" onclick="playSound('${t.id}')">
       <span class="sound-icon">${t.category === 'music' ? '🎵' : '🌿'}</span>
       <span class="sound-label">${t.name}</span>
     </button>
     ${isMJ ? `<button onclick="removeSoundTrack('${t.id}')" title="Supprimer ce son"
-      style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--red);border:none;cursor:pointer;font-size:.6rem;color:#ffd0d0;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>` : ''}
+      style="position:absolute;top:2px;right:2px;background:none;border:none;cursor:pointer;font-size:.75rem;color:var(--ink3);opacity:.6;padding:2px 4px">✕</button>` : ''}
   </div>`;
 }
 
