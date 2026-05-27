@@ -100,15 +100,60 @@ body{font-family:var(--font-body);background:#0d0a05;color:var(--ink);min-height
 .ds-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border2);background:var(--parchment);cursor:pointer;}
 .ds-dot.filled-success{background:var(--green2);border-color:var(--green2);}
 .ds-dot.filled-failure{background:var(--red2);border-color:var(--red2);}
-/* SPELL SLOTS */
-.spell-level-section{margin-bottom:1rem;}
-.spell-level-header{display:flex;align-items:center;gap:.75rem;padding:.5rem .75rem;background:var(--ink2);border-radius:var(--radius) var(--radius) 0 0;border:1px solid var(--gold);}
-.spell-level-title{font-family:var(--font-title);font-size:.7rem;color:var(--gold-light);letter-spacing:.1em;text-transform:uppercase;flex:1;}
-.slot-pips{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
-.slot-pip{width:18px;height:18px;border-radius:50%;border:2px solid var(--gold);background:var(--gold);cursor:pointer;transition:all .15s;}
-.slot-pip.used{background:transparent;border-color:rgba(184,134,11,.4);}
+/* SPELL SLOTS BG3 STYLE */
+/* Barre de slots horizontale en haut */
+.spell-slots-bar{display:flex;gap:1.5rem;flex-wrap:wrap;padding:.75rem 1rem;background:var(--ink);border-radius:var(--radius);margin-bottom:1rem;align-items:flex-end;overflow-x:auto;}
+.spell-slot-group{display:flex;flex-direction:column;align-items:center;gap:.35rem;flex-shrink:0;}
+.spell-slot-group-label{font-family:var(--font-title);font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(240,208,96,.5);}
+.slot-pips{display:flex;gap:5px;align-items:center;}
+.slot-pip{
+  width:20px;height:20px;border-radius:50%;
+  border:2px solid var(--gold);background:var(--gold);
+  cursor:pointer;transition:all .2s;
+  box-shadow:0 0 6px rgba(184,134,11,.4);
+  position:relative;
+}
+.slot-pip::after{
+  content:'';position:absolute;inset:3px;border-radius:50%;
+  background:rgba(255,220,80,.6);
+}
+.slot-pip.used{
+  background:transparent;border-color:rgba(184,134,11,.25);
+  box-shadow:none;
+}
+.slot-pip.used::after{display:none;}
 .slot-pip:hover{transform:scale(1.2);}
-.slot-count{font-family:var(--font-title);font-size:.65rem;color:rgba(240,208,96,.6);}
+.slot-count{font-family:var(--font-title);font-size:.6rem;color:rgba(240,208,96,.5);margin-top:1px;}
+/* Sections de sorts par niveau */
+.bg3-slots-row{display:flex;align-items:flex-end;gap:1.2rem;flex-wrap:wrap;padding:.25rem 0;}
+.bg3-slot-group{display:flex;flex-direction:column;align-items:center;gap:.35rem;}
+.bg3-slot-label{font-family:var(--font-title);font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);text-align:center;}
+.bg3-slot-pips{display:flex;gap:4px;align-items:center;}
+.bg3-pip{
+  width:22px;height:22px;border-radius:4px;
+  background:linear-gradient(135deg,var(--gold) 0%,var(--gold2) 100%);
+  border:1.5px solid var(--gold2);
+  cursor:pointer;transition:all .18s;
+  box-shadow:0 1px 4px rgba(184,134,11,.3),inset 0 1px 0 rgba(255,230,100,.4);
+  position:relative;
+}
+.bg3-pip::after{
+  content:'';position:absolute;inset:2px 2px 8px 2px;
+  border-radius:2px;background:rgba(255,240,150,.3);
+}
+.bg3-pip:hover{transform:scale(1.12);box-shadow:0 2px 8px rgba(184,134,11,.5);}
+.bg3-pip.used{
+  background:rgba(184,134,11,.08);
+  border:1.5px solid rgba(184,134,11,.2);
+  box-shadow:none;
+}
+.bg3-pip.used::after{display:none;}
+.bg3-slot-group.cantrips .bg3-slot-label{color:var(--purple2,#7a2aaa);}
+.bg3-sep{width:1px;height:30px;background:var(--border2);margin:0 .2rem;align-self:center;}
+.spell-level-section{margin-bottom:.75rem;}
+.spell-level-header{display:flex;align-items:center;gap:.75rem;padding:.4rem .75rem;background:var(--parchment3);border-radius:var(--radius) var(--radius) 0 0;border:1px solid var(--border2);cursor:pointer;}
+.spell-level-header:hover{background:var(--parchment2);}
+.spell-level-title{font-family:var(--font-title);font-size:.68rem;color:var(--ink2);letter-spacing:.08em;text-transform:uppercase;flex:1;}
 .spell-level-body{border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);padding:.5rem;}
 .spell-card{background:var(--parchment);border:1px solid var(--border);border-radius:4px;margin-bottom:.4rem;overflow:hidden;}
 .spell-card-header{display:flex;align-items:center;gap:.5rem;padding:.4rem .6rem;cursor:pointer;background:var(--parchment2);}
@@ -407,6 +452,17 @@ body{font-family:var(--font-body);background:#0d0a05;color:var(--ink);min-height
         <input type="text" class="spell-search" id="spell-search-input" placeholder="Chercher parmi les 477 sorts D&amp;D 5e…" oninput="searchSpells(this.value)" autocomplete="off">
         <div class="suggestions-list" id="spell-suggestions"></div>
       </div>
+    </div>
+    <!-- SPELL SLOTS BG3 STYLE -->
+    <div class="card" id="bg3-slots-panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
+        <div class="section-title" style="margin-bottom:0">Emplacements de sorts</div>
+        <div style="display:flex;gap:.4rem">
+          <button class="btn btn-ghost btn-sm" onclick="shortRest()">Repos court</button>
+          <button class="btn btn-primary btn-sm" onclick="longRest()">Repos long ✨</button>
+        </div>
+      </div>
+      <div id="bg3-slots-display"></div>
     </div>
     <div id="spell-levels-container"></div>
   </div>
@@ -1311,7 +1367,7 @@ let diceState = {die:'d6', mod:'none', playerDie:'d6', playerMod:'none'};
 const FIREBASE_CONFIG = {
   apiKey:"AIzaSyDT27fUnOF2uxpETgWO6ikEaK5Mn24Hv74",
   authDomain:"donjons-grenouilles.firebaseapp.com",
-  databaseURL:"https://donjons-grenouilles-default-rtdb.europe-west1.firebasedatabase.app",
+  databaseURL:"hhttps://donjons-grenouilles-default-rtdb.europe-west1.firebasedatabase.app",
   projectId:"donjons-grenouilles",
   storageBucket:"donjons-grenouilles.firebasestorage.app",
   messagingSenderId:"587688024665",
@@ -1467,9 +1523,63 @@ function cycleSkillProf(name,el){
 // ═══════════════════════════════════════════════════════════
 // SORTS PAR NIVEAU
 // ═══════════════════════════════════════════════════════════
+function renderBG3Slots(){
+  const container = document.getElementById('bg3-slots-display');
+  if(!container) return;
+  const cls = document.getElementById('char-class').value;
+  const lvl = +document.getElementById('char-level').value||1;
+  const table = SPELL_SLOTS[cls];
+  const panel = document.getElementById('bg3-slots-panel');
+
+  if(!table){
+    if(panel) panel.style.display='none';
+    return;
+  }
+  if(panel) panel.style.display='';
+
+  const slots = table[Math.min(lvl, table.length-1)];
+  if(!slots){container.innerHTML='';return;}
+
+  const levelNames=['1','2','3','4','5','6','7','8','9'];
+  let html='<div class="bg3-slots-row">';
+  // Cantrips indicator
+  html+=`<div class="bg3-slot-group cantrips">
+    <div class="bg3-slot-label">Tours<br>de magie</div>
+    <div class="bg3-slot-pips" style="justify-content:center">
+      <span style="font-family:var(--font-title);font-size:.75rem;color:var(--purple2,#7a2aaa)">∞</span>
+    </div>
+  </div>
+  <div class="bg3-sep"></div>`;
+
+  slots.forEach((max,i)=>{
+    if(!max) return;
+    if(!spellSlotState[i+1]) spellSlotState[i+1]={max,used:0};
+    spellSlotState[i+1].max=max;
+    const used=spellSlotState[i+1].used||0;
+    const pips=Array.from({length:max},(_,j)=>
+      `<div class="bg3-pip${j<used?' used':''}" onclick="toggleSlotBG3(${i+1},${j})" title="${j<used?'Utilisé — clic pour récupérer':'Disponible — clic pour utiliser'}"></div>`
+    ).join('');
+    html+=`<div class="bg3-slot-group">
+      <div class="bg3-slot-label">Niv.<br>${levelNames[i]}</div>
+      <div class="bg3-slot-pips">${pips}</div>
+      <div style="font-family:var(--font-title);font-size:.55rem;color:var(--ink3);text-align:center">${max-used}/${max}</div>
+    </div>`;
+  });
+  html+='</div>';
+  container.innerHTML=html;
+}
+
+function toggleSlotBG3(lvl,pip){
+  if(!spellSlotState[lvl])return;
+  const{used,max}=spellSlotState[lvl];
+  spellSlotState[lvl].used=pip<used?Math.max(0,used-1):Math.min(max,used+1);
+  renderBG3Slots(); saveChar();
+}
+
 function renderSpellsByLevel(){
   const container=document.getElementById('spell-levels-container');
   if(!container)return;
+  renderBG3Slots();
   const cls=document.getElementById('char-class').value;
   const lvl=+document.getElementById('char-level').value||1;
   const table=SPELL_SLOTS[cls];
@@ -1529,7 +1639,6 @@ function renderSpellsByLevel(){
       html+=`<div class="spell-level-section">
         <div class="spell-level-header">
           <span class="spell-level-title">${levelNames[i]}</span>
-          ${pipsHtml}
         </div>
         <div class="spell-level-body">
           ${spellCards||`<div style="font-family:var(--font-body);font-style:italic;color:var(--ink3);font-size:.85rem;padding:.3rem">Aucun sort de ce niveau — cherchez en haut.</div>`}
@@ -1689,9 +1798,11 @@ function renderEquip(){
 // SAUVEGARDE / CHARGEMENT
 // ═══════════════════════════════════════════════════════════
 let saveTimeout=null;
-function saveChar(){clearTimeout(saveTimeout);saveTimeout=setTimeout(_saveChar,800);}
+function saveChar(){clearTimeout(saveTimeout);saveTimeout=setTimeout(_saveChar,300);}
+window.addEventListener('beforeunload',()=>{clearTimeout(saveTimeout);_saveChar();});
 function _saveChar(){
   if(!currentPlayerSlot)return;
+  if(!firebaseReady){setTimeout(_saveChar,500);return;}
   const g=id=>document.getElementById(id)?.value||'';
   const data={
     name:g('char-name'),race:g('char-race'),class:g('char-class'),level:g('char-level'),
@@ -2263,7 +2374,6 @@ function loadMJCombat() {
   fbGet('combat', data => {
     if (data) {
       combatState = safeCombatState(data);
-      if (!Array.isArray(combatState.combatants)) combatState.combatants = [];
       const el = document.getElementById('round-num'); if (el) el.textContent = combatState.round || 1;
       renderCombatants();
     }
