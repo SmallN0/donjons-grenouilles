@@ -350,7 +350,7 @@ body{font-family:var(--font-body);background:#0d0a05;color:var(--ink);min-height
         <div class="field"><label>Classe</label>
           <select id="char-class" onchange="onClassChange()">
             <option value="">— Choisir —</option>
-            <option>Barbare</option><option>Barde</option><option>Clerc</option><option>Druide</option>
+           <option>Artificier</option> <option>Barbare</option><option>Barde</option><option>Clerc</option><option>Druide</option>
             <option>Guerrier</option><option>Moine</option><option>Paladin</option><option>Rôdeur</option>
             <option>Roublard</option><option>Ensorceleur</option><option>Occultiste</option><option>Magicien</option>
           </select>
@@ -1303,6 +1303,7 @@ const MONSTERS_DB = [
 // ═══════════════════════════════════════════════════════════
 const SPELL_SLOTS = {
   Barde:       [null,[2],[3],[4,2],[4,3],[4,3,2],[4,3,3],[4,3,3,1],[4,3,3,2],[4,3,3,3,1],[4,3,3,3,2],[4,3,3,3,2,1],[4,3,3,3,2,1],[4,3,3,3,2,1,1],[4,3,3,3,2,1,1],[4,3,3,3,2,1,1,1],[4,3,3,3,2,1,1,1],[4,3,3,3,2,1,1,1,1],[4,3,3,3,3,1,1,1,1],[4,3,3,3,3,2,1,1,1],[4,3,3,3,3,2,2,1,1]],
+  Artificier:  [null,null,[2],[3],[3,2],[4,2],[4,2],[4,3],[4,3],[4,3,2],[4,3,2],[4,3,3],[4,3,3],[4,3,3,1],[4,3,3,1],[4,3,3,2],[4,3,3,2],[4,3,3,3,1],[4,3,3,3,1],[4,3,3,3,2],[4,3,3,3,2]],
   Clerc:       [null,[2],[3],[4,2],[4,3],[4,3,2],[4,3,3],[4,3,3,1],[4,3,3,2],[4,3,3,3,1],[4,3,3,3,2],[4,3,3,3,2,1],[4,3,3,3,2,1],[4,3,3,3,2,1,1],[4,3,3,3,2,1,1],[4,3,3,3,2,1,1,1],[4,3,3,3,2,1,1,1],[4,3,3,3,2,1,1,1,1],[4,3,3,3,3,1,1,1,1],[4,3,3,3,3,2,1,1,1],[4,3,3,3,3,2,2,1,1]],
   Druide:      [null,[2],[3],[4,2],[4,3],[4,3,2],[4,3,3],[4,3,3,1],[4,3,3,2],[4,3,3,3,1],[4,3,3,3,2],[4,3,3,3,2,1],[4,3,3,3,2,1],[4,3,3,3,2,1,1],[4,3,3,3,2,1,1],[4,3,3,3,2,1,1,1],[4,3,3,3,2,1,1,1],[4,3,3,3,2,1,1,1,1],[4,3,3,3,3,1,1,1,1],[4,3,3,3,3,2,1,1,1],[4,3,3,3,3,2,2,1,1]],
   Magicien:    [null,[2],[3],[4,2],[4,3],[4,3,2],[4,3,3],[4,3,3,1],[4,3,3,2],[4,3,3,3,1],[4,3,3,3,2],[4,3,3,3,2,1],[4,3,3,3,2,1],[4,3,3,3,2,1,1],[4,3,3,3,2,1,1],[4,3,3,3,2,1,1,1],[4,3,3,3,2,1,1,1],[4,3,3,3,2,1,1,1,1],[4,3,3,3,3,1,1,1,1],[4,3,3,3,3,2,1,1,1],[4,3,3,3,3,2,2,1,1]],
@@ -1311,8 +1312,8 @@ const SPELL_SLOTS = {
   'Rôdeur':    [null,null,[2],[3],[3,2],[4,2],[4,2],[4,3],[4,3],[4,3,2],[4,3,2],[4,3,3],[4,3,3],[4,3,3,1],[4,3,3,1],[4,3,3,2],[4,3,3,2],[4,3,3,3,1],[4,3,3,3,1],[4,3,3,3,2],[4,3,3,3,2]],
   Occultiste:  [null,[1],[2],[2],[2],[2],[2],[2],[2],[2],[2],[3],[3],[3],[3],[3],[3],[4],[4],[4],[4]],
 };
-const HIT_DICE = {Barbare:'d12',Barde:'d8',Clerc:'d8',Druide:'d8',Guerrier:'d10',Moine:'d8',Paladin:'d10','Rôdeur':'d10',Roublard:'d8',Ensorceleur:'d6',Occultiste:'d8',Magicien:'d6'};
-const SAVE_PROFS = {
+const HIT_DICE = {Artificier:'d8'Barbare:'d12',Barde:'d8',Clerc:'d8',Druide:'d8',Guerrier:'d10',Moine:'d8',Paladin:'d10','Rôdeur':'d10',Roublard:'d8',Ensorceleur:'d6',Occultiste:'d8',Magicien:'d6'};
+const SAVE_PROFS = {Artificier:['Con','Int'],
   Barbare:['For','Con'],Barde:['Dex','Cha'],Clerc:['Sag','Cha'],Druide:['Int','Sag'],
   Guerrier:['For','Con'],Moine:['For','Dex'],Paladin:['Sag','Cha'],'Rôdeur':['For','Dex'],
   Roublard:['Dex','Int'],Ensorceleur:['Con','Cha'],Occultiste:['Sag','Cha'],Magicien:['Int','Sag']
