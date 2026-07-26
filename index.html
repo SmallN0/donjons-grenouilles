@@ -715,6 +715,7 @@ body{font-family:var(--font-body);background:#0d0a05;color:var(--ink);min-height
 // ═══════════════════════════════════════════════════════════
 const SPELLS_DB = [
 // NIVEAU 0 — TOURS DE MAGIE
+{name:"Piqûre mentale",level:0,school:"Enchantement",castTime:"1 action",range:"18m",components:"V",duration:"1 round",concentration:false,desc:"Vous plantez une pointe de douleur psychique dans l'esprit d'une créature visible. Elle doit réussir un jet de sauvegarde d'Intelligence ou subir 1d6 dégâts psychiques et avoir le désavantage au prochain jet d'attaque qu'elle effectue avant la fin de son prochain tour."},
 {name:"Aspersion d'acide",level:0,school:"Invocation",castTime:"1 action",range:"18m",components:"V,S",duration:"Instantanée",concentration:false,desc:"Vous projetez une bulle d'acide sur une ou deux créatures situées à 1,5 m l'une de l'autre. Chaque cible doit réussir un jet de sauvegarde de Dextérité ou subir 1d6 dégâts d'acide. Les dégâts augmentent de 1d6 aux niveaux 5 (2d6), 11 (3d6) et 17 (4d6)."},
 {name:"Assistance",level:0,school:"Divination",castTime:"1 action",range:"Contact",components:"V,S",duration:"Concentration, 1 minute",concentration:true,desc:"Vous touchez une créature volontaire. Une fois avant la fin du sort, la cible peut ajouter 1d4 à un jet d'aptitude, d'attaque ou de sauvegarde de son choix. Le sort se termine alors."},
 {name:"Bouffée de poison",level:0,school:"Invocation",castTime:"1 action",range:"3m",components:"V,S",duration:"Instantanée",concentration:false,desc:"Vous tendez la main vers une créature visible et lui soufflez une bouffée de gaz nauséabond. La créature doit réussir un jet de sauvegarde de Constitution ou subir 1d12 dégâts de poison. Les dégâts augmentent aux niveaux 5, 11 et 17."},
@@ -746,6 +747,8 @@ const SPELLS_DB = [
 {name:"Trait de feu",level:0,school:"Évocation",castTime:"1 action",range:"36m",components:"V,S",duration:"Instantanée",concentration:false,desc:"Vous projetez une flamme sur une créature visible. Faites une attaque de sort à distance. En cas de coup, la cible subit 1d10 dégâts de feu."},
 {name:"Vrai frappe",level:0,school:"Divination",castTime:"1 action",range:"Personnelle",components:"S",duration:"Concentration, 1 round",concentration:true,desc:"Vous concentrez vos sens sur une créature à portée. À votre prochain tour, votre attaque contre cette créature bénéficie de l'avantage si le sort est toujours actif."},
 // NIVEAU 1
+{name:"Représailles infernales",level:1,school:"Évocation",castTime:"1 réaction",range:"Personnelle",components:"V",duration:"Instantanée",concentration:false,desc:"Lorsque vous subissez des dégâts d'une créature à moins de 3m de vous, vous pouvez utiliser votre réaction pour l'entourer de flammes vengeresses infernales. La créature doit réussir un jet de Dextérité ou subir 2d10 dégâts de feu."},
+{name:"Mains brûlantes",level:1,school:"Évocation",castTime:"1 action",range:"Personnelle",components:"V,S",duration:"Instantanée",concentration:false,desc:"Vous tendez les mains, doigts écartés, et projetez une fine feuille de flammes depuis le bout de vos doigts. Chaque créature dans un cône de 4,5m doit réussir un jet de Dextérité ou subir 3d6 dégâts de feu, la moitié en cas de réussite. Les objets non portés dans la zone prennent feu."},
 {name:"Création ou destruction d'eau",level:1,school:"Transmutation",castTime:"1 action",range:"9m",components:"V,S,M",duration:"Instantanée",concentration:false,desc:"Vous créez ou détruisez de l'eau. Vous pouvez soit créer 38 litres d'eau potable dans un conteneur ou au sol, soit détruire l'eau se trouvant dans une zone de 9m de côté (brouillard, glace fine, ou eau stagnante)."},
 {name:"Détection des poisons et des maladies",level:1,school:"Divination",castTime:"1 action",range:"Personnelle",components:"V,S,M",duration:"Concentration, 10 minutes",concentration:true,desc:"Vous pouvez détecter la présence et la localisation de poisons, de créatures venimeuses et de maladies dans un rayon de 9m. Vous savez également de quel type de poison ou de maladie il s'agit."},
 {name:"Éclair traçant",level:0,school:"Évocation",castTime:"1 action",range:"36m",components:"V,S",duration:"Instantanée",concentration:false,desc:"Un trait scintillant jaillit vers une créature à portée. Faites une attaque de sort à distance. En cas de coup, la cible subit 1d10 dégâts radiants et ne bénéficie plus de l'avantage de l'invisibilité jusqu'au début de votre prochain tour."},
@@ -780,6 +783,8 @@ const SPELLS_DB = [
 {name:"Sommeil",level:1,school:"Enchantement",castTime:"1 action",range:"27m",components:"V,S,M",duration:"1 minute",concentration:false,desc:"Ce sort envoie des créatures dans un sommeil magique. Lancez 5d8 ; le résultat indique les PV de créatures que vous pouvez endormir. Les créatures avec les moins de PV sont affectées en premier. Elles s'éveillent si elles subissent des dégâts."},
 {name:"Vague tonnante",level:1,school:"Évocation",castTime:"1 action",range:"Personnelle",components:"V,S",duration:"Instantanée",concentration:false,desc:"Une vague de force tonnante déferle autour de vous. Chaque créature dans un cube de 4,5m doit réussir un jet de Constitution ou subir 2d8 dégâts de tonnerre et être repoussée de 3m. En cas de réussite, la moitié des dégâts seulement."},
 // NIVEAU 2
+{name:"Lame d'ombre",level:2,school:"Illusion",castTime:"1 action bonus",range:"Personnelle",components:"V,S",duration:"Concentration, 1 minute",concentration:true,desc:"Vous créez une lame de pure ombre dans votre main libre. Elle inflige 2d8 dégâts nécrotiques en cas de coup, bénéficie de l'avantage aux attaques dans l'obscurité ou faible lumière, et émet une lumière faible sur 3m."},
+{name:"Frayeur",level:2,school:"Illusion",castTime:"1 action",range:"Personnelle",components:"V,S,M",duration:"Instantanée",concentration:false,desc:"Vous projetez une image épouvantable visible uniquement par les créatures de votre choix dans un cône de 9m. Chaque cible doit réussir un jet de Sagesse ou lâcher ce qu'elle tient et devenir effrayée, devant utiliser ses déplacements pour fuir loin de vous par le chemin le plus sûr."},
 {name:"Lien de protection",level:2,school:"Abjuration",castTime:"1 action",range:"9m",components:"V,S,M",duration:"1 heure",concentration:false,desc:"Ce sort lie deux créatures consentantes. Tant qu'elles restent à moins de 9m l'une de l'autre, chacune peut détourner une partie des dégâts subis par l'autre vers elle-même."},
 {name:"Préservation des morts",level:2,school:"Nécromancie",castTime:"1 action",range:"Contact",components:"V,S,M",duration:"Instantanée",concentration:false,desc:"Vous touchez un cadavre ou une partie de cadavre. Il est préservé et ne pourra pas se décomposer pendant 10 jours. Le sort neutralise aussi les toxines et ralentit tout processus de décès en cours."},
 {name:"Prière de guérison",level:2,school:"Évocation",castTime:"10 minutes",range:"9m",components:"V,S",duration:"Instantanée",concentration:false,desc:"Jusqu'à six créatures de votre choix visibles dans la portée récupèrent chacune 2d8 + votre modificateur d'incantation PV. Ce sort n'affecte pas les morts-vivants ni les artificités."},  
@@ -1548,7 +1553,7 @@ function cycleSkillProf(name,el){
 // ═══════════════════════════════════════════════════════════
 // SORTS PAR NIVEAU
 // ═══════════════════════════════════════════════════════════
-function renderBG3Slots(){
+function renderBG3Slots(){const isOccultiste = document.getElementById('char-class').value === 'Occultiste';
   const container = document.getElementById('bg3-slots-display');
   if(!container) return;
   const cls = document.getElementById('char-class').value;
@@ -1578,14 +1583,15 @@ function renderBG3Slots(){
 
   slots.forEach((max,i)=>{
     if(!max) return;
-    if(!spellSlotState[i+1]) spellSlotState[i+1]={max,used:0};
-    spellSlotState[i+1].max=max;
-    const used=spellSlotState[i+1].used||0;
+    const slotLvl = isOccultiste ? Math.min(Math.ceil(lvl/2),5) : i+1;
+    if(!spellSlotState[slotLvl]) spellSlotState[slotLvl]={max,used:0};
+    spellSlotState[slotLvl].max=max;
+    const used=spellSlotState[slotLvl].used||0;
     const pips=Array.from({length:max},(_,j)=>
-      `<div class="bg3-pip${j<used?' used':''}" onclick="toggleSlotBG3(${i+1},${j})" title="${j<used?'Utilisé — clic pour récupérer':'Disponible — clic pour utiliser'}"></div>`
+      `<div class="bg3-pip${j<used?' used':''}" onclick="toggleSlotBG3(${slotLvl},${j})" title="${j<used?'Utilisé — clic pour récupérer':'Disponible — clic pour utiliser'}"></div>`
     ).join('');
     html+=`<div class="bg3-slot-group">
-      <div class="bg3-slot-label">Niv.<br>${levelNames[i]}</div>
+      <div class="bg3-slot-label">Niv.<br>${levelNames[slotLvl-1]}</div>
       <div class="bg3-slot-pips">${pips}</div>
       <div style="font-family:var(--font-title);font-size:.55rem;color:var(--ink3);text-align:center">${max-used}/${max}</div>
     </div>`;
