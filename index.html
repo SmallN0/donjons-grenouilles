@@ -204,6 +204,14 @@ body{font-family:var(--font-body);background:#0d0a05;color:var(--ink);min-height
 .attack-row{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:.4rem;align-items:center;padding:.35rem .55rem;background:var(--parchment);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:.35rem;}
 .equip-item{display:flex;align-items:center;gap:.5rem;padding:.35rem .55rem;background:var(--parchment);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:.35rem;}
 .equip-name{font-family:var(--font-body);font-size:.9rem;color:var(--ink2);flex:1;}
+  .ability-item{background:var(--parchment);border:1px solid var(--border);border-radius:var(--radius);padding:.5rem .6rem;margin-bottom:.5rem;}
+.ability-header{display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem;}
+.ability-name-input{flex:1;font-family:var(--font-title);font-size:.9rem;background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--ink);padding:2px 0;}
+.ability-name-input:focus{outline:none;border-bottom-color:var(--gold);}
+.ability-name-input.used-visual{text-decoration:line-through;color:var(--ink3);}
+.ability-desc-textarea{width:100%;font-family:var(--font-body);font-size:.85rem;background:var(--parchment2);border:1px solid var(--border2);border-radius:4px;color:var(--ink2);padding:.4rem .5rem;resize:none;overflow:hidden;min-height:2.2em;line-height:1.4;}
+.ability-desc-textarea:focus{outline:none;border-color:var(--gold);}
+.ability-desc-textarea.used-visual{opacity:.55;}
 /* MODAL */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;}
 .modal-overlay.open{display:flex;}
@@ -426,6 +434,14 @@ body{font-family:var(--font-body);background:#0d0a05;color:var(--ink);min-height
         <input class="inline-input" style="flex:0 0 68px;text-align:center;padding:.38rem .4rem" type="text" id="new-atk-dmg" placeholder="1d8+3">
         <input class="inline-input" style="flex:1;padding:.38rem .55rem" type="text" id="new-atk-type" placeholder="Type (tranchant…)">
         <button class="btn btn-primary btn-sm" onclick="addAttack()">+ Ajouter</button>
+      </div>
+    </div>
+        <div class="card">
+      <div class="section-title">Capacités</div>
+      <div id="abilities-list"></div>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem">
+        <input class="inline-input" style="flex:1;padding:.38rem .55rem" type="text" id="new-ability-name" placeholder="Nom de la capacité">
+        <button class="btn btn-primary btn-sm" onclick="addAbility()">+ Ajouter</button>
       </div>
     </div>
     <div class="card">
@@ -1358,7 +1374,7 @@ function safeCombatState(data) {
 }
 let knownSpells = [], spellSlotState = {};
 let deathSaves = {s:[false,false,false], f:[false,false,false]};
-let attacksList = [], equipList = [];
+let attacksList = [], equipList = [], abilitiesList = [];
 let firebaseReady = false, db = null;
 let selectedMonster = null, hpModalTarget = null;
 let diceState = {die:'d6', mod:'none', playerDie:'d6', playerMod:'none'};
@@ -1785,6 +1801,34 @@ function renderAttacks(){
       <button class="btn btn-ghost btn-xs" onclick="attacksList.splice(${i},1);renderAttacks();saveChar()">✕</button>
     </div>`).join('');
 }
+  function addAbility(){
+  const name=document.getElementById('new-ability-name').value.trim();
+  if(!name)return;
+  if(!Array.isArray(abilitiesList))abilitiesList=[];
+  abilitiesList.push({name,desc:'',used:false});
+  document.getElementById('new-ability-name').value='';
+  renderAbilities();saveChar();
+}
+function renderAbilities(){
+  const c=document.getElementById('abilities-list');if(!c)return;
+  if(!Array.isArray(abilitiesList))abilitiesList=[];
+  if(!abilitiesList.length){c.innerHTML='<div style="font-family:var(--font-body);font-style:italic;color:var(--ink3);margin-bottom:.4rem">Aucune capacité.</div>';return;}
+  c.innerHTML=abilitiesList.map((a,i)=>`
+    <div class="ability-item">
+      <div class="ability-header">
+        <input type="checkbox" ${a.used?'checked':''} onchange="toggleAbilityUsed(${i},this.checked)" style="width:auto">
+        <input class="ability-name-input${a.used?' used-visual':''}" type="text" value="${a.name.replace(/"/g,'&quot;')}" oninput="updateAbilityName(${i},this.value)" placeholder="Nom de la capacité">
+        <button class="btn btn-ghost btn-xs" onclick="removeAbility(${i})">✕</button>
+      </div>
+      <textarea class="ability-desc-textarea${a.used?' used-visual':''}" oninput="autoGrow(this);updateAbilityDesc(${i},this.value)" placeholder="Description, effets, conditions…">${a.desc||''}</textarea>
+    </div>`).join('');
+  c.querySelectorAll('.ability-desc-textarea').forEach(t=>autoGrow(t));
+}
+function autoGrow(el){el.style.height='auto';el.style.height=el.scrollHeight+'px';}
+function toggleAbilityUsed(i,val){abilitiesList[i].used=val;renderAbilities();saveChar();}
+function updateAbilityName(i,val){abilitiesList[i].name=val;saveChar();}
+function updateAbilityDesc(i,val){abilitiesList[i].desc=val;saveChar();}
+function removeAbility(i){abilitiesList.splice(i,1);renderAbilities();saveChar();}
 function addEquip(){const v=document.getElementById('new-equip').value.trim();if(!v)return;equipList.push(v);document.getElementById('new-equip').value='';renderEquip();saveChar();}
 function renderEquip(){
   const c=document.getElementById('equip-list');if(!c)return;
@@ -1813,7 +1857,7 @@ function _saveChar(){
     hp:{max:g('hp-max'),current:g('hp-current'),temp:g('hp-temp')},
     combat:{ac:g('char-ac'),speed:g('char-speed'),hdr:g('hit-dice-remaining')},
     skillProfs:charData.skillProfs||{}, saveProfs:charData.saveProfs||{},
-    deathSaves, attacksList, equipList, knownSpells, spellSlotState,
+    deathSaves, attacksList, equipList, abilitiesList, knownSpells, spellSlotState,
     notes:{traits:g('char-traits'),ideals:g('char-ideals'),bonds:g('char-bonds'),flaws:g('char-flaws'),notes:g('char-notes')}
   };
   charData={...charData,...data};
@@ -1824,7 +1868,7 @@ function _saveChar(){
 function loadCharData(){
   if(!currentPlayerSlot)return;
   fbGet('chars/'+currentPlayerSlot,data=>{
-    if(!data){renderAttacks();renderEquip();renderSpellsByLevel();updateStats();return;}
+    if(!data){renderAttacks();renderEquip();renderAbilities();renderSpellsByLevel();updateStats();return;}
     charData=data;
     const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!==undefined)el.value=v;};
     set('char-name',data.name);set('char-race',data.race);set('char-class',data.class);
@@ -1837,6 +1881,7 @@ function loadCharData(){
     if(data.deathSaves){deathSaves=data.deathSaves;renderDeathSaves();}
     attacksList=data.attacksList||[]; renderAttacks();
     equipList=data.equipList||[]; renderEquip();
+abilitiesList=data.abilitiesList||[]; renderAbilities();
     knownSpells=data.knownSpells||[];
     spellSlotState=data.spellSlotState||{};
     if(data.notes){set('char-traits',data.notes.traits);set('char-ideals',data.notes.ideals);set('char-bonds',data.notes.bonds);set('char-flaws',data.notes.flaws);set('char-notes',data.notes.notes);}
